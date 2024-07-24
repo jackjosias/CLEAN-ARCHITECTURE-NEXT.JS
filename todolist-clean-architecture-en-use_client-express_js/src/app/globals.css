@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  } 
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14, 0 0 30px #39FF14;
+  }
+  50% {
+    box-shadow: 0 0 20px #39FF14, 0 0 40px #39FF14, 0 0 60px #39FF14;
+  }
+}
+
+.bg-neon-green {
+  @apply bg-green-400;
+  animation: pulse 2s infinite;
+}
+
+.bg-neon-green-dark {
+  @apply bg-green-600;
+}
+
+
+
+
+
+
+/* Define the .loading-spinner class */
+.loading-spinner {
+  --size: 8rem;
+  width: var(--size);
+  height: var(--size);
+  margin: auto;
+  background-color: #007BFF;
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  animation: spin 1s linear infinite;
+}
+
+/* Rotation animation */
+@keyframes spin {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  100% {
+    transform: rotateZ(360deg);
+  }
+}

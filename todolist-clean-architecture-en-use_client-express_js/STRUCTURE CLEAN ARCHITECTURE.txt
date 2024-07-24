@@ -1,0 +1,379 @@
+Architecture Clean :
+    * L’Architecture Clean met l’accent sur la séparation des préoccupations pour rendre la base de code plus facile à maintenir, à tester et à étendre.
+      -Elle repose sur quatre couches :
+    
+        # Présentation : 
+            gère les interactions avec l’utilisateur.
+        
+        # Application : 
+            gère la logique métier.
+        
+        # Domaine : 
+            définit les entités commerciales et leurs relations.
+        
+        # Infrastructure : 
+            gère les préoccupations externes (bases de données, services web, etc.)1.
+    
+    * La structure du projet suit un schéma structuré avec des projets distincts pour chaque couche, favorisant la réutilisation et la testabilité du code.
+
+
+
+/todolist-clean-architecture-use_client-express_js
+├── public
+│   └── favicon.ico
+├── src
+│   ├── app
+│   │   ├── api
+│   │   │   └── todos
+│   │   │       └── route.ts
+│   │   ├── page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── core
+│   │   ├── application
+│   │   │   └── services
+│   │   │       └── TodoService.ts
+│   │   ├── domain
+│   │   │   ├── entities
+│   │   │   │   └── Todo.ts
+│   │   │   └── repositories
+│   │   │       └── ITodoRepository.ts
+│   │   ├── usecases
+│   │   │   └── TodoUseCases.ts
+│   │   └── dtos
+│   │       └── TodoDTO.ts
+│   │
+│   ├── infrastructure
+│   │   └── repositories
+│   │       └── ApiTodoRepository.ts
+│   │   └── http
+│   │       └── proxy.ts
+│   │
+│   ├── presentation
+│   │   ├── components
+│   │   │   ├── TodoList.tsx
+│   │   │   ├── TodoItem.tsx
+│   │   │   └── TodoForm.tsx
+│   │   └── hooks
+│   │       └── useTodos.ts
+│   │
+│   ├── store
+│   │    └── todoStore.ts
+│   │
+│   └── tests
+│       ├── unit                                    // unit: Pour les tests unitaires
+│       │   ├── core
+│       │   │   ├── application
+│       │   │   │   └── services
+│       │   │   │       └── TodoService.test.ts
+│       │   │   │
+│       │   │   ├── domain
+│       │   │   │   ├── entities
+│       │   │   │   │   └── Todo.test.ts
+│       │   │   │   └── repositories
+│       │   │   │       └── ITodoRepository.test.ts
+│       │   │   │
+│       │   │   └── usecases
+│       │   │       └── TodoUseCases.test.ts
+│       │   │
+│       │   ├── infrastructure
+│       │   │   └── repositories
+│       │   │       └── ApiTodoRepository.test.ts
+│       │   │
+│       │   └── presentation
+│       │       ├── components
+│       │       │   ├── TodoList.test.tsx
+│       │       │   ├── TodoItem.test.tsx
+│       │       │   └── TodoForm.test.tsx
+│       │       └── hooks
+│       │           └── useTodos.test.ts
+│       │
+│       ├── integration                             // integration: Pour les tests d’intégration
+│       │   ├── api
+│       │   │   └── todos.test.ts
+│       │   └── infrastructure
+│       │       └── repositories
+│       │           └── ApiTodoRepository.test.ts
+│       │
+│       └── e2e                                     // e2e: Pour les tests de bout en bou
+│           └── todolist.test.ts
+│   
+│   
+├── .env
+├── .gitignore
+├── next.config.js
+├── package.json
+└── tsconfig.json
+
+
+
+
+
+
+
+
+--------------------------- Voici l'ordre de lecture des fichiers pour comprendre la logique de l'application ----------
+************MA COMPREHENSION APRES ANALYSE ********
+
+        **1. `src/core/domain/entities/Todo.ts`**:
+                -> [
+                        C'est les interface en TypeScript.
+                        Elle définit les propriétés et leurs types que l'objet doit avoir.
+
+                        - Je peux dire que les interfaces peuvent etre exporter et on des attribut et leurs Typologies.
+                        C'est Typologies seront utiliser dans les futures classe et dans les methodes.
+                        une initerface fait reference à une TABLES, et aux attributs cette TABLES dans la base de donnees de l'applications.
+                   ]
+
+        **2. `src/core/dtos/TodoDTO.ts`**:
+                -> [
+                        C'est les interface en TypeScript.
+                        Elle définit les propriétés et leurs types que l'objet doit avoir.
+
+                        - Je peux dire que les interfaces peuvent etre exporter et on des attribut et leurs Typologies.
+                        C'est Typologies seront utiliser dans les futures classe et dans les methodes.
+                        une initerface fait reference à une TABLES, et aux attributs cette TABLES dans la base de donnees de l'applications.
+
+                        -ICI il s'agit UNIQUEMENT DES Interfaces à utiliser lors de L'INSERT et du UPDATE dans les Cas d'Utilisations.
+                        DANS 'src/core/dtos/TodoDTO.ts' Il s'agira de :
+
+                                export interface CreateTodoDTO{ title: string; }
+                                        &
+                                export interface UpdateTodoDTO{ title?: string; }
+
+                   ]
+
+        **3. `src/core/domain/repositories/ITodoRepository.ts`**:
+                -> [
+                        C'est les interface en TypeScript.
+                        spécifiant les méthodes qu'une classe qui l'implémente **doit** avoir.
+
+                        - Je peux dire que le:
+                               [ export interface ITodoRepository ]
+                        definie une Interface qui a des methodes prenant des parametres precis,typé et
+                        Retourne une PROMESSE de Type [Todo] venant de 'src/core/domain/entities/Todo.ts'.
+
+                        - cette appelé pour definir les types et la structures des donnees Provenant de ces methodes.
+                   ]
+
+        **4. `src/core/application/services/TodoService.ts`**:
+                -> [
+                        Définition de la classe TodoService
+                        Cet interfaces définissent les données nécessaires pour créer ou mettre à jour une tâche.
+
+                        - La [classe TodoService] :
+                        declare une propriete privée nommée 'todoRepository' de type 'ITodoRepository',
+                        puis un contructeur prend en paramètre une instance de ITodoRepository et l'assigne à la propriété 'todoRepository'.
+
+                        cette classe à pour but de separer et de rendre PRIVE l'acces au METHODES de [import { ITodoRepository } from '../../domain/repositories/ITodoRepository';].
+                        elle prend en PARAMETRE une INTERFACE de type [ ITodoRepository ].
+                   ]
+
+        **5. `src/core/usecases/TodoUseCases.ts`**:
+                -> [
+                        - Définition de la classe TodoUseCases, qui contient les cas d'utilisation liés aux tâches.
+                                Déclaration d'une propriété privée nommée 'todoService' de type 'TodoService'.
+                                Cette propriété sera injectée via le constructeur et permettra d'accéder aux méthodes du service TodoService.
+
+                        Constructeur de la classe TodoUseCases.
+                        Il prend en paramètre une instance de TodoService et l'assigne à la propriété 'todoService'.
+
+                        Cette Classe prend en parametre une nouvelle INSTANCE de la CLASSE [ TodoService ] pour appeller les méthodes devenue PRIVATE du [service TodoService].
+                   ]
+
+
+        **6. `src/infrastructure/http/proxy.ts`**:                
+                -> [
+                        - Définition des configurations AXIOS pour la gestion des appel API.
+                        Création d'une instance Axios avec une configuration par défaut.
+                   ]
+
+
+        **7. `src/infrastructure/repositories/ApiTodoRepository.ts`**:
+                -> [
+                        1- Importe l'interface ITodoRepository depuis le chemin relatif '../../core/domain/repositories/ITodoRepository'.
+                        2- Importe la classe Todo depuis le chemin relatif '../../core/domain/entities/Todo'.
+                        3- Importe l'objet api depuis le chemin relatif '../http/proxy'.
+                        4- Définition de la classe ApiTodoRepository qui implémente l'interface ITodoRepository.
+
+                        Cette classe est responsable de la communication avec l'API pour gérer les Todos.
+                        Elle implémente le Axios dans le Repository [`src/core/domain/repositories/ITodoRepository.ts`] initial manquant.
+                   ]
+
+        **8. `src/store/todoStore.ts`**:
+                -> [
+                        1- Importe la fonction 'create' de la librairie Zustand. Cette fonction permet de créer un nouveau store.
+                        2- Importe l'interface 'Todo'. Cette interface définit la structure d'un objet "Todo" qui représente une tâche.
+                        3- Importe la classe 'TodoUseCases'. Cette classe contient la logique métier (use cases) pour les opérations sur les tâches.
+                        4- Importe la classe 'TodoService'. Cette classe sert d'intermédiaire entre les use cases et le repository. Elle permet d'implémenter la logique d'accès aux données sans exposer les détails au niveau des use cases.
+                        5- Importe la classe 'ApiTodoRepository'. Cette classe est responsable de la communication avec l'API pour les opérations CRUD (Create, Read, Update, Delete) sur les tâches. ELLE COMPLETE le [`src/core/domain/repositories/ITodoRepository.ts`].
+                        6- Création et export du store 'useTodoStore' en utilisant la fonction 'create' de Zustand. 
+
+
+                        [
+                                // Création d'une instance de 'ApiTodoRepository'. C'est ici qu'on pourrait changer l'implémentation pour utiliser LocalStorage par exemple.
+                                        const todoRepository = new ApiTodoRepository();
+                                // Création d'une instance de 'TodoService' en lui injectant le repository 'todoRepository'. 
+                                // Cette injection de dépendances permet de facilement changer l'implémentation du repository sans modifier le code du service.
+                                        const todoService = new TodoService(todoRepository);
+                                // Création d'une instance de 'TodoUseCases' en lui injectant le service 'todoService'.
+                                        const todoUseCases = new TodoUseCases(todoService);
+                        ]
+                   ]
+
+        **9. `src/presentation/hooks/useTodos.ts`**:
+                -> [
+                       1- Importer le hook useEffect de la bibliothèque React
+                       2- Importer le hook useTodoStore depuis le module store/todoStore.ts
+                       3- Définir la fonction useTodos qui sera utilisée comme hook
+
+                       Ce code est une implémentation du hook `useTodos` dans une architecture propre. Il fournit une interface pour récupérer, ajouter, modifier et supprimer des tâches dans l'application.
+                   ]
+
+        **10. `src/presentation/components/TodoList.tsx`**:                
+                -> [
+                        Ce code est un composant React appelé `TodoList` qui affiche une liste de tâches. Il utilise plusieurs concepts importants :
+
+                                **1. Hooks React:**
+
+                                - `useState`: Ce hook n’est pas utilisé directement dans ce composant, mais il est important de le comprendre car il est probablement utilisé dans le hook personnalisé `useTodos`. `useState` permet de gérer l’état localement dans un composant fonctionnel.
+                                - `useTodos`: Ce hook personnalisé est importé et utilisé pour récupérer l’état des tâches (`todos`, `isLoading`, `error`) et les fonctions pour interagir avec ces tâches (`toggleTodo`, `deleteTodo`). L’utilisation d’un hook personnalisé permet de séparer la logique métier de la présentation, ce qui rend le code plus lisible et maintenable.
+
+                                **2. Composants React:**
+
+                                - `TodoItem`: Ce composant représente une seule tâche et est rendu pour chaque tâche dans le tableau `todos`. Il reçoit la tâche individuelle (`todo`), la fonction `toggleTodo` pour marquer une tâche comme terminée ou non, et la fonction `deleteTodo` pour supprimer une tâche.
+                                - `TodoForm`: Ce composant permet aux utilisateurs d’ajouter de nouvelles tâches à la liste.
+
+                                **3. Librairie Framer Motion:**
+
+                                - `motion.div`: Ce composant de Framer Motion permet d'animer des éléments HTML. Dans ce code, il est utilisé pour animer l'apparition du formulaire `TodoForm` et des tâches individuelles (`TodoItem`).
+                                - `AnimatePresence`: Ce composant de Framer Motion est utilisé pour animer l'ajout et la suppression d'éléments de la liste. Il permet de réaliser des animations d'entrée et de sortie fluides pour les tâches.
+
+                                **4. Tailwind CSS:**
+                                
+                        Ce code est un bon exemple de composant React bien structuré et lisible. Il utilise des hooks personnalisés pour séparer la logique métier de la présentation, des composants React pour la modularité et la réutilisation du code, et une librairie d'animation pour une meilleure expérience utilisateur.
+                   ]
+
+************
+
+
+
+
+
+
+
+GEMINI :
+
+En suivant les principes de la Clean Architecture :
+
+    **1. `src/core/domain/entities/Todo.ts`**: 
+            - **C'est le point de départ car il définit l'entité centrale de l'application : la tâche (Todo).** 
+            - Comprendre la structure d'une tâche (id, titre, statut, dates) est essentiel avant d'explorer comment elle est manipulée.
+            -> ( C'est l'inter )
+
+    **2. `src/core/domain/repositories/ITodoRepository.ts`**:
+            - **Définit l'interface du référentiel pour les tâches.** 
+            - Il décrit les opérations que *pourrait* effectuer une couche de persistence des données (ajout, suppression, recherche...) *sans implémenter* comment cela est fait.
+
+    **3. `src/core/dtos/TodoDTO.ts`**:
+            - **Définit les structures de données (DTO) pour la communication entre les couches.**
+            - Il s'agit des données brutes échangées, par exemple entre la couche présentation (formulaire de création) et la logique métier.
+
+
+    **4. `src/core/application/services/TodoService.ts`**:
+
+
+    **5. `src/core/usecases/TodoUseCases.ts`**:
+            - **C'est ici que réside la logique métier de l'application.**
+            - La classe `TodoUseCases` utilise l'interface `ITodoRepository` pour interagir avec les tâches, sans se soucier de l'implémentation réelle du stockage.
+
+    **6. `src/infrastructure/http/proxy.ts`**:
+            - **Configure Axios pour communiquer avec l'API distante.**
+            - C'est un niveau d'abstraction pour les requêtes HTTP, permettant de changer d'implémentation si besoin.
+
+    **7. `src/infrastructure/repositories/ApiTodoRepository.ts`**:
+            - **Implémente l'interface `ITodoRepository` en utilisant une API distante.**
+            - Ce fichier relie la logique métier à un moyen concret de stocker et récupérer les données.
+
+    **8. `src/presentation/components/TodoForm.tsx`**:
+            - **Composant React pour créer une nouvelle tâche.**
+            - Il interagit probablement avec le hook `useTodos` pour ajouter la nouvelle tâche via l'API.
+
+    **9. `src/presentation/components/TodoItem.tsx`**:
+            - **Composant React pour afficher et interagir avec une seule tâche.**
+            - Gère l'affichage du titre, du statut et les actions de modification/suppression.
+
+    **10. `src/presentation/components/TodoList.tsx`**:
+            - **Composant React pour afficher une liste de tâches.**
+            - Utilise le composant `TodoItem` pour chaque tâche et gère l'affichage global de la liste.
+
+    **11. `src/presentation/hooks/useTodos.ts`**:
+            - **Hook React pour gérer l'état des tâches et les interactions avec l'API.**
+            - Sert d'intermédiaire entre les composants de présentation et la logique métier.
+
+    ## En résumé :
+
+        L'ordre de lecture suit le flux des données et des responsabilités dans l'application :
+
+            - On part de l'entité `Todo` (ce qu'est une tâche).
+            - On définit comment on interagit avec (interface du repository).
+            - On crée les cas d'utilisation métier (sans implémentation de stockage).
+            - On implémente le stockage via une API.
+            - On relie le tout à l'interface utilisateur avec des composants et des hooks React. 
+
+    ## Remarques importantes :
+
+        - Cette arborescence de fichiers reflète une Clean Architecture, où les couches sont découplées.
+        - Le code métier ne dépend pas de l'implémentation du stockage ou de l'interface utilisateur.
+        - Cette structure rend l'application plus testable, maintenable et évolutive. 
+
+
+---------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+******* DETAILS DOSSIER TESTS *******
+
+    Dans cette structure mise à jour, j’ai ajouté un dossier sous avec la structure suivante :tests src :
+
+    1- unit: Pour les tests unitaires
+
+            Suit la même structure que le code source
+            Teste les composants, services, entités, etc. de manière isolée
+
+
+    2-  integration: Pour les tests d’intégration
+
+            Teste l’interaction entre différentes parties du système
+            Inclut des tests pour l’API et les référentiels
+
+
+    3-  e2e: Pour les tests de bout en bout
+
+            Teste l’application dans son ensemble, simulant les interactions utilisateur
+
+
+
+    Cette structure permet de :
+
+        * Maintenir une organisation claire des tests
+        * Faciliter la navigation entre les fichiers de test et les fichiers source correspondants
+        * Séparer les différents types de tests pour une meilleure gestion et exécution
+
+    Notez que chaque fichier de test porte le même nom que le fichier qu’il teste, avec l’extension ou pour les composants React..test.ts.test.tsx
+    Cette structure est cohérente avec les principes de la Clean Architecture et permet une couverture de test complète à tous les niveaux de l’application.
+

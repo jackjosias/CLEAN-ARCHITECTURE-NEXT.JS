@@ -1,0 +1,233 @@
+
+
+
+
+
+// src/core/domain/entities/Todo.ts
+export interface Todo {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
+// src/core/domain/repositories/ITodoRepository.ts
+import { Todo } from '../entities/Todo';
+
+export interface ITodoRepository {
+  getAll(): Promise<Todo[]>;
+  getById(id: string): Promise<Todo | null>;
+  create(title: string): Promise<Todo>;
+  update(id: string, data: Partial<Todo>): Promise<Todo>;
+  delete(id: string): Promise<void>;
+}
+
+// src/core/dtos/TodoDTO.ts
+export interface CreateTodoDTO {
+    title: string;
+  }
+  
+  export interface UpdateTodoDTO {
+    title?: string;
+    completed?: boolean;
+  }
+
+
+// src/core/usecases/TodoUseCases.ts
+import { ITodoRepository } from '../domain/repositories/ITodoRepository';
+import { Todo } from '../domain/entities/Todo';
+
+export class TodoUseCases {
+  constructor(private todoRepository: ITodoRepository) {}
+
+  async getAllTodos(): Promise<Todo[]> {
+    return this.todoRepository.getAll();
+  }
+
+  async createTodo(title: string): Promise<Todo> {
+    return this.todoRepository.create(title);
+  }
+
+  async toggleTodoCompletion(id: string): Promise<Todo> {
+    const todo = await this.todoRepository.getById(id);
+    if (!todo) throw new Error('Todo not found');
+    return this.todoRepository.update(id, { completed: !todo.completed });
+  }
+
+  async deleteTodo(id: string): Promise<void> {
+    return this.todoRepository.delete(id);
+  }
+}
+
+
+
+// src/infrastructure/repositories/ApiTodoRepository.ts
+import { ITodoRepository } from '../../core/domain/repositories/ITodoRepository';
+import { Todo } from '../../core/domain/entities/Todo';
+import api from '../proxy';
+
+export class ApiTodoRepository implements ITodoRepository {
+  async getAll(): Promise<Todo[]> {
+    const response = await api.get('/todos');
+    return response.data;
+  }
+
+  async getById(id: string): Promise<Todo | null> {
+    const response = await api.get(`/todos/${id}`);
+    return response.data;
+  }
+
+  async create(title: string): Promise<Todo> {
+    const response = await api.post('/todos', { title });
+    return response.data;
+  }
+
+  async update(id: string, data: Partial<Todo>): Promise<Todo> {
+    const response = await api.put(`/todos/${id}`, data);
+    return response.data;
+  }
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`/todos/${id}`);
+  }
+}
+
+
+// src/infrastructure/proxy.ts
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:3002/api', // Update this to match your external API URL
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export default api;
+
+
+
+// src/presentation/components/TodoForm.tsx
+import React, { useState } from 'react';
+
+interface TodoFormProps {
+  onAdd: (title: string) => void;
+}
+
+const TodoForm: React.FC<TodoFormProps> = ({ onAdd }) => {
+  const [title, setTitle] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim()) {
+      onAdd(title);
+      setTitle('');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Nouvelle tâche"
+        className="text-black"
+      />
+      <button type="submit" className="text-black">Ajouter</button>
+    </form>
+  );
+};
+
+export default TodoForm;
+
+
+// src/presentation/components/TodoItem.tsx
+import React from 'react';
+import { Todo } from '../../core/domain/entities/Todo';
+
+interface TodoItemProps {
+  todo: Todo;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete }) => {
+  return (
+    <li>
+      <input type="checkbox" checked={todo.completed} onChange={() => onToggle(todo.id)} />
+      <span  style={{ textDecoration: todo.completed ? 'line-through ' : 'none' }}>
+        {todo.title}
+      </span>
+      <button onClick={() => onDelete(todo.id)} className="text-black">Supprimer</button>
+    </li>
+  );
+};
+
+export default TodoItem;
+
+
+
+// src/presentation/components/TodoList.tsx
+import React from 'react';
+import { Todo } from '../../core/domain/entities/Todo';
+import TodoItem from './TodoItem';
+
+interface TodoListProps {
+  todos: Todo[];
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete }) => {
+  return (
+    <ul>
+      {todos.map(todo => (
+        <TodoItem key={todo.id} todo={todo} onToggle={onToggle} onDelete={onDelete} />
+      ))}
+    </ul>
+  );
+};
+
+export default TodoList;
+
+
+
+// src/presentation/hooks/useTodos.ts
+import { useState, useEffect } from 'react';
+import { Todo } from '../../core/domain/entities/Todo';
+import axios from '../../infrastructure/proxy';
+
+export function useTodos() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
+    const response = await axios.get('/todos');
+    setTodos(response.data);
+  };
+
+  const addTodo = async (title: string) => {
+    const response = await axios.post('/todos', { title });
+    setTodos([...todos, response.data]);
+  };
+
+  const toggleTodo = async (id: string) => {
+    const response = await axios.put(`/todos`, { id });
+    setTodos(todos.map(todo => todo.id === id ? response.data : todo));
+  };
+
+  const deleteTodo = async (id: string) => {
+    await axios.delete(`/todos`, { data: { id } });
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+
+  return { todos, addTodo, toggleTodo, deleteTodo };
+}
+
+

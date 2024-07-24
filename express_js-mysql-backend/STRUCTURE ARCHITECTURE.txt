@@ -1,0 +1,43 @@
+
+___
+- mkdir express_js-mysql-backend
+- cd express-mysql-todo
+- npm init -y
+- npm install express mysql2 dotenv cors body-parser uuid
+
+___
+- touch .env
+
+___
+- mkdir config
+- touch config/database.js
+
+___
+- mkdir models
+- touch models/todo.js
+
+___
+- touch index.js
+
+___
+- mkdir routes
+- touch routes/todo.js
+
+
+___ LANCEMENT ___
+- node index.js
+
+
+
+
+/express_js-mysql-backend
+├── config
+│   └── database.js
+├── models
+│   └── todo.js
+├── routes
+│   └── todo.js
+├── .env
+├── index.js
+├── package.json
+└── node_modules
